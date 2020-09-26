@@ -7,20 +7,16 @@
     tools:context=".MainActivity"
     android:orientation="vertical">
 
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="1dp"
-        tools:layout_editor_absoluteY="1dp">
-
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent">
 
             <EditText
                 android:id="@+id/edttxt1"
+                android:text="Justin Bieber"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:autofillHints="textPersonName"
@@ -30,8 +26,9 @@
 
             <EditText
                 android:id="@+id/edttxt2"
+                android:text="Baby"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:autofillHints="textPersonName"
                 android:ems="10"
                 android:hint="@string/enter_song_name"
@@ -40,21 +37,38 @@
             <Button
                 android:id="@+id/btn"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="@string/get_lyrics" />
+                android:layout_height="wrap_content"
+                android:text="@string/get_lyrics"
+                android:backgroundTint="#D22E2E2E"
+                android:textColor="#FFF"
+                android:textSize="20sp"
+                />
 
+
+
+             <LinearLayout
+                 android:layout_width="match_parent"
+                 android:layout_height="match_parent"
+                 android:orientation="vertical">
+                 <ScrollView
+                     android:layout_width="match_parent"
+                     android:layout_height="match_parent"
+                     tools:layout_editor_absoluteX="1dp"
+                     tools:layout_editor_absoluteY="1dp"
+                     >
             <TextView
                 android:id="@+id/txtview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textColor="#A15037"
-                android:textSize="24sp"
-                android:textStyle="italic"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_gravity="center_horizontal"
                 android:padding="20dp"
-                android:gravity="center_horizontal"/>
+                android:text=""
+                android:textColor="#F6F6F6"
+                android:textSize="24sp"
+                android:textStyle="italic" /> </ScrollView></LinearLayout>
+
 
         </LinearLayout>
-    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

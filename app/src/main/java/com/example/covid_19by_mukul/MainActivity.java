@@ -10,6 +10,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -52,12 +53,16 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth.AuthStateListener mAuthSteListener;
     public final int RC_SIGN_IN = 1;
     private String username ="";
+    private String singerName = "";
+    private String songName = "";
 
 //https://api.lyrics.ovh/v1/Rihanna/Diamonds#
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setTitle("Find Lyrics");
 
         mFirebaseAuth = FirebaseAuth.getInstance();
         edttxt1 = findViewById(R.id.edttxt1);
@@ -76,40 +81,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //Toast.makeText(MainActivity.this, "good work", Toast.LENGTH_SHORT).show();
-                ttsSPeak("Lyrics on the way");
-                Toasty.info(MainActivity.this, "Lyrics on the way", Toast.LENGTH_SHORT,true).show();
+                if(!singerName.equals(edttxt1.getText().toString()) || !songName.equals(edttxt2.getText().toString())) {
+                    singerName = edttxt1.getText().toString();
+                    songName = edttxt2.getText().toString();
+                    loadLyrics(singerName, songName);
+                }
 
-
-                String url = "https://api.lyrics.ovh/v1/"+edttxt1.getText().toString() + "/" + edttxt2.getText().toString();
-                RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
-
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try{
-
-                            txtview.setText(response.getString("lyrics"));
-                            ttsSPeak("Lyrics loaded.");
-
-
-                        }catch (JSONException e){
-                            e.printStackTrace();
-                            Toasty.error(MainActivity.this, "lyrics not found", Toasty.LENGTH_LONG, true).show();
-
-                        }
-
-
-
-                    }
-                },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                    Toasty.error(MainActivity.this, "Lyrics not found", Toasty.LENGTH_LONG, true).show();
-                            }
-                        });
-
-                requestQueue.add(jsonObjectRequest);
 
             }
         });
@@ -226,6 +203,49 @@ public void ttsSPeak(String toSpeak){
         mFirebaseAuth.removeAuthStateListener(mAuthSteListener);
     }
 
+    public void loadLyrics(String singerName, String songName) {
+        ttsSPeak("Lyrics on the way");
+        Toasty.info(MainActivity.this, "Lyrics on the way", Toast.LENGTH_SHORT,true).show();
+
+
+        String url = "https://api.lyrics.ovh/v1/"+singerName + "/" + songName;
+        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try{
+
+                    String lyrics = response.getString("lyrics");
+                    if(response.getString("lyrics").equals("")){
+                        txtview.setText("Lyrics not found!");
+                    }
+                    else{
+                    txtview.setText(response.getString("lyrics"));
+                    ttsSPeak("Lyrics loaded.");
+                    txtview.setBackgroundColor(Color.parseColor("#404040"));}
+
+
+                }catch (JSONException e){
+                    e.printStackTrace();
+                    Toasty.error(MainActivity.this, "lyrics not found", Toasty.LENGTH_LONG, true).show();
+
+                }
+
+
+            }
+        },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toasty.error(MainActivity.this, "Lyrics not found", Toasty.LENGTH_LONG, true).show();
+                    }
+                });
+
+        requestQueue.add(jsonObjectRequest);
+    }
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -237,4 +257,5 @@ public void ttsSPeak(String toSpeak){
             }
         }
     }
+
 }
