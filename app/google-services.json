@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "51076089705",
+    "firebase_url": "https://covid-19-by-mukul.firebaseio.com",
+    "project_id": "covid-19-by-mukul",
+    "storage_bucket": "covid-19-by-mukul.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:51076089705:android:83fec364569b443d015ff8",
+        "android_client_info": {
+          "package_name": "com.example.covid_19by_mukul"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "51076089705-oovn2lffrius06bvudpbu7j2pnvj75sj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBuUN1NKKpMDJHhR7EUy7EnCCE1bvayKI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "51076089705-oovn2lffrius06bvudpbu7j2pnvj75sj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

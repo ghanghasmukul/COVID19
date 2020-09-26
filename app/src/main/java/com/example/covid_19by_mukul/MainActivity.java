@@ -1,11 +1,13 @@
 package com.example.covid_19by_mukul;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -27,11 +29,15 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.firebase.ui.auth.AuthUI;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Locale;
 
 import es.dmoral.toasty.Toasty;
@@ -40,13 +46,20 @@ public class MainActivity extends AppCompatActivity {
     EditText edttxt1,edttxt2;
     Button btn1;
     TextView txtview;
-    TextToSpeech t1;
+    TextToSpeech t1;//
+    // Creating Member variables for Firebase
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseAuth.AuthStateListener mAuthSteListener;
+    public final int RC_SIGN_IN = 1;
+    private String username ="";
+
 //https://api.lyrics.ovh/v1/Rihanna/Diamonds#
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mFirebaseAuth = FirebaseAuth.getInstance();
         edttxt1 = findViewById(R.id.edttxt1);
         edttxt2 = findViewById(R.id.edttxt2);
         txtview = findViewById(R.id.txtview);
@@ -100,7 +113,28 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
+        mAuthSteListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if(user!=null){
+                        username = user.getDisplayName();
+                    ttsSPeak("Logged in Successfully");
+                }
+                else{
+                    startActivityForResult(
+                            AuthUI.getInstance()
+                                    .createSignInIntentBuilder()
+                                    .setIsSmartLockEnabled(false)
+                                    .setAvailableProviders(Arrays.asList(
+                                            new AuthUI.IdpConfig.GoogleBuilder().build(),
+                                            new AuthUI.IdpConfig.PhoneBuilder().build(),
+                                            new AuthUI.IdpConfig.EmailBuilder().build()))
+                                    .build(),
+                            RC_SIGN_IN);
+                }
+            }
+        };
     }
 
     @Override
@@ -133,8 +167,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (item.getItemId() == R.id.exit){
-            finish();
-            System.exit(0);
+            AuthUI.getInstance().signOut(this);
+            //finish();
+            //System.exit(0);
             Toasty.info(MainActivity.this, "Isme tera ghata!!", Toast.LENGTH_LONG).show();
         }
         if (item.getItemId() == R.id.mukulg){
@@ -177,5 +212,29 @@ public void ttsSPeak(String toSpeak){
 
     public void Toasty1(int i , String message) {
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mFirebaseAuth.addAuthStateListener(mAuthSteListener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mFirebaseAuth.removeAuthStateListener(mAuthSteListener);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == RC_SIGN_IN){
+            if(resultCode == Activity.RESULT_OK){
+            }
+            else{
+                finish();
+            }
+        }
     }
 }
