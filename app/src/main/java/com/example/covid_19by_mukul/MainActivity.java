@@ -144,10 +144,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (item.getItemId() == R.id.exit){
-            AuthUI.getInstance().signOut(this);
-            //finish();
-            //System.exit(0);
-            Toasty.info(MainActivity.this, "Isme tera ghata!!", Toast.LENGTH_LONG).show();
+
+            finish();
+            System.exit(0);
+
         }
         if (item.getItemId() == R.id.mukulg){
             Intent intent1 = new Intent(MainActivity.this,MainActivity2.class);
@@ -155,6 +155,10 @@ public class MainActivity extends AppCompatActivity {
             Toasty.info(MainActivity.this, "Welcome", Toast.LENGTH_LONG).show();
             return true;
 
+        }
+        if (item.getItemId() == R.id.signout) {
+            AuthUI.getInstance().signOut(this);
+            Toasty.info(MainActivity.this, "Isme tera ghata!!", Toast.LENGTH_LONG).show();
         }
 
         return super.onOptionsItemSelected(item);
