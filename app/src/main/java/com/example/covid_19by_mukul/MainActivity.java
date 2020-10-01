@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -33,6 +34,11 @@ import com.android.volley.toolbox.Volley;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
     private String username ="";
     private String singerName = "";
     private String songName = "";
+    private FirebaseDatabase database;
+    private DatabaseReference myRef, myRefRead;
+    private ProgressDialog mProgressDialog;
+    ValueEventListener readListener;
 
 //https://api.lyrics.ovh/v1/Rihanna/Diamonds#
     @Override
@@ -63,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         setTitle("Find Lyrics");
+        database = FirebaseDatabase.getInstance();
 
         mFirebaseAuth = FirebaseAuth.getInstance();
         edttxt1 = findViewById(R.id.edttxt1);
@@ -71,10 +82,6 @@ public class MainActivity extends AppCompatActivity {
         btn1  = findViewById(R.id.btn);
 
         initTextToSpeech();
-
-
-
-
 
 
         btn1.setOnClickListener(new View.OnClickListener() {
@@ -112,6 +119,27 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+
+        readListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    Toast.makeText(MainActivity.this, "From Database", Toast.LENGTH_LONG).show();
+                    hideProgressDialog();
+                    String lyricsfromDB = snapshot.getValue().toString();
+                    txtview.setText(lyricsfromDB);
+                    ttsSPeak("Lyrics loaded.");
+                    txtview.setBackgroundColor(Color.parseColor("#404040"));
+                } else {
+                        abcd();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
     }
 
     @Override
@@ -144,6 +172,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (item.getItemId() == R.id.exit){
+            Toasty.info(MainActivity.this, "bhaj", Toast.LENGTH_LONG).show();
+
 
             finish();
             System.exit(0);
@@ -207,30 +237,80 @@ public void ttsSPeak(String toSpeak){
         mFirebaseAuth.removeAuthStateListener(mAuthSteListener);
     }
 
-    public void loadLyrics(String singerName, String songName) {
+    public void loadLyrics(final String SingerName, final String SongName) {
+        showProgressDialog();
+        singerName = SingerName.toLowerCase();
+        songName = SongName.toLowerCase();
+
         ttsSPeak("Lyrics on the way");
         Toasty.info(MainActivity.this, "Lyrics on the way", Toast.LENGTH_SHORT,true).show();
 
+        myRefRead = database.getReference("songlyrics/"+singerName+"/"+songName+"/lyrics");
+        myRefRead.addValueEventListener(readListener);
+      //  myRefRead.addValueEventListener(readListener);
 
-        String url = "https://api.lyrics.ovh/v1/"+singerName + "/" + songName;
+
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == RC_SIGN_IN){
+            if(resultCode == Activity.RESULT_OK){
+            }
+            else{
+                finish();
+            }
+        }
+    }
+
+    public void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage("DTT MAMA ...");
+            mProgressDialog.setIndeterminate(true);
+            mProgressDialog.setCancelable(false);
+        }
+
+        mProgressDialog.show();
+    }
+
+
+    public void hideProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.dismiss();
+        }
+    }
+
+    private void abcd(){
+
+        myRefRead.removeEventListener(readListener);
+
+        String url = "https://api.lyrics.ovh/v1/" + singerName + "/" + songName;
         RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                try{
+                try {
 
                     String lyrics = response.getString("lyrics");
-                    if(response.getString("lyrics").equals("")){
+                    hideProgressDialog();
+                    if (response.getString("lyrics").equals("")) {
                         txtview.setText("Lyrics not found!");
+                    } else {
+                        Toast.makeText(MainActivity.this, "From API", Toast.LENGTH_LONG).show();
+                        txtview.setText(lyrics);
+                        myRef = database.getReference("songlyrics/" + singerName + "/" + songName);
+                        myRef.child("lyrics").setValue(lyrics);
+
+                        ttsSPeak("Lyrics loaded.");
+                        txtview.setBackgroundColor(Color.parseColor("#404040"));
                     }
-                    else{
-                    txtview.setText(response.getString("lyrics"));
-                    ttsSPeak("Lyrics loaded.");
-                    txtview.setBackgroundColor(Color.parseColor("#404040"));}
 
 
-                }catch (JSONException e){
+                } catch (JSONException e) {
                     e.printStackTrace();
                     Toasty.error(MainActivity.this, "lyrics not found", Toasty.LENGTH_LONG, true).show();
 
@@ -247,19 +327,6 @@ public void ttsSPeak(String toSpeak){
                 });
 
         requestQueue.add(jsonObjectRequest);
-    }
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == RC_SIGN_IN){
-            if(resultCode == Activity.RESULT_OK){
-            }
-            else{
-                finish();
-            }
-        }
     }
 
 }
